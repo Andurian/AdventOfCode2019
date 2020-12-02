@@ -1,0 +1,11 @@
+B)G
+G)H
+D)I
+K)L
+E)J
+B)C
+C)D
+D)E
+J)K
+E)F
+COM)B
