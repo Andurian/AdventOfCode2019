@@ -63,6 +63,8 @@ SET( PROJECTS
 	day_19
 	day_20
 	day_21
+	day_22
+	day_23
 )
 
 FOREACH(P IN LISTS PROJECTS)

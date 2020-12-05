@@ -22,6 +22,7 @@ ADD_LIBRARY( ${PROJECT_NAME}
 	console_image.cpp
 	n_comparator.h
 	multicall.h
+	enumerate.h
 )
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
