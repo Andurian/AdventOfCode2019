@@ -5,6 +5,20 @@ DequeInput::DequeInput(std::initializer_list<Integer> values) : m_values { value
 	// empty
 }
 
+DequeInput::DequeInput(const std::string & s) {
+	for(const auto c : s)
+	{
+		if(c == '\n')
+		{
+			m_values.push_back(10);
+		}
+		else
+		{
+			m_values.push_back(static_cast<Integer>(c));
+		}
+	}
+}
+
 
 Integer DequeInput::readNext()
 {
@@ -12,3 +26,5 @@ Integer DequeInput::readNext()
 	m_values.pop_front();
 	return ret;
 }
+
+

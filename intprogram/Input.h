@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <string>
 #include <vector>
 
 #include "int_types.h"
@@ -19,6 +20,8 @@ class DequeInput : public Input
 {
 public:
 	DequeInput(std::initializer_list<Integer> values);
+	DequeInput(const std::string& s);
+
 	~DequeInput() = default;
 
 	Integer readNext() override;
