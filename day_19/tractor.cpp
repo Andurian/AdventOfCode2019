@@ -4,64 +4,8 @@
 #include "read_file.h"
 
 #include <iostream>
+#include <thread>
 
-Image::Image(int width, int height, char fill) : m_width{ width }, m_height{ height }, m_data(width * height, fill)
-{
-	// empty
-}
-
-Image::Image(std::vector<char> data, int width) : m_data{ std::move(data) }, m_width{ width }
-{
-	m_height = static_cast<int>(m_data.size()) / m_width;
-	if (m_height * m_width != m_data.size())
-	{
-		throw std::runtime_error("");
-	}
-}
-
-
-char Image::at(int x, int y) const
-{
-	return m_data.at(y * m_width + x);
-}
-
-
-char & Image::at(int x, int y)
-{
-	return m_data.at(y * m_width + x);
-}
-
-
-std::string Image::draw() const
-{
-	std::stringstream ss;
-
-	for (int x = 0; x < m_width; ++x)
-	{
-		ss << at(x, 0);
-	}
-
-	for (int y = 1; y < m_height; ++y)
-	{
-		ss << "\n";
-		for (int x = 0; x < m_width; ++x)
-		{
-			ss << at(x, y);
-		}
-	}
-	return ss.str();
-}
-
-void drawBox(int x, int y, int width, int height, Image & img)
-{
-    for(int py = y; py < y + height; ++py)
-    {
-        for(int px = x; px < x + width; ++px)
-        {
-            img.at(px, py) = '0';
-        }
-    }
-}
 
 bool isInsideBeam(int x, int y, const std::vector<Integer> & code)
 {
@@ -85,25 +29,6 @@ bool isInsideBeam(int x, int y, const std::vector<Integer> & code)
 }
 
 
-Image imageFromTractorCode(int width, int height, const std::vector<Integer> & code)
-{
-	Image img{ width, height, '.' };
-
-	for (int y = 0; y < height; ++y)
-	{
-		for (int x = 0; x < width; ++x)
-		{
-			const auto result = isInsideBeam(x, y, code);
-			if (result == 1)
-			{
-				img.at(x, y) = '#';
-			}
-		}
-	}
-	return img;
-}
-
-
 int countTractorPoints(int width, int height, const std::vector<Integer> & code)
 {
     int count = 0;
@@ -122,9 +47,23 @@ std::pair<int, int> findClosestPoint(int width, int height, const std::vector<In
 {
     // My beam is so narrow that it has a gap an a few lines and columns without a beam
     // Search heuristic does not work for those areas
-    // Solid beam starts at these coordinates
-    int x = 5;
-    int y = 4;
+    // Find "real" start of the contiguous beam
+    int x = 0;
+    int y = 0;
+
+	for(int tx = 1; tx < 10; ++tx)
+	{
+		for(int ty = 1; ty < 10; ++ty)
+		{
+			if(isInsideBeam(tx, ty, code)){
+				x = tx;
+				y = ty;
+				goto offsetFound;
+			}
+		}
+	}
+
+	offsetFound:
 
     while(true)
     {

@@ -8,6 +8,8 @@ FIND_PACKAGE( Threads REQUIRED )
 
 SET(EXE_PROJECT_NAME ${PROJECT_NAME}_exe)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++ -fno-limit-debug-info")
+
 INCLUDE_DIRECTORIES(
   ../common
   ../intprogram

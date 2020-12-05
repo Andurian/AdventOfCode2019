@@ -24,7 +24,7 @@ char & Image::at(int row, int col)
 }
 
 
-std::string Image::draw() const
+std::string Image::display() const
 {
 	std::stringstream ss;
 

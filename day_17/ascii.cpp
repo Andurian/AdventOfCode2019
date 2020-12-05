@@ -4,11 +4,10 @@
 #include "read_file.h"
 
 #include <iostream>
+#include <string>
 
 
-Image::Image(std::vector<char> data, int width)
-	: m_data{ std::move(data) }
-	, m_width{ width }
+Image::Image(std::vector<char> data, int width) : m_data{ std::move(data) }, m_width{ width }
 {
 	m_height = static_cast<int>(m_data.size()) / m_width;
 	if (m_height * m_width != m_data.size())
@@ -30,7 +29,7 @@ char & Image::at(int row, int col)
 }
 
 
-std::string Image::draw() const
+std::string Image::display() const
 {
 	std::stringstream ss;
 
@@ -54,14 +53,11 @@ std::string Image::draw() const
 Image fromProgram(std::vector<Integer> code)
 {
 	InterProgramCommunication in, out;
-	std::thread t{
-		[&]
-		{
-			Intprogram{ in, out, code }.run();
-			in.stop();
-			out.stop();
-		}
-	};
+	std::thread t{ [&] {
+		Intprogram{ in, out, code }.run();
+		in.stop();
+		out.stop();
+	} };
 
 	int width = 0;
 	std::vector<char> img;
@@ -102,7 +98,7 @@ std::vector<std::tuple<int, int>> getIntersections(const Image & img)
 		for (int col = 1; col < img.cols() - 1; ++col)
 		{
 			const bool is = img.at(row, col) == '#' && img.at(row, col - 1) == '#' && img.at(row, col + 1) == '#'
-			                && img.at(row - 1, col) == '#' && img.at(row + 1, col) == '#';
+							&& img.at(row - 1, col) == '#' && img.at(row + 1, col) == '#';
 			if (is)
 			{
 				ret.push_back(std::make_tuple(row, col));
@@ -231,8 +227,7 @@ namespace
 } // namespace
 
 
-PathBuilder::PathBuilder(const Image & img)
-	: m_img{ img }
+PathBuilder::PathBuilder(const Image & img) : m_img{ img }
 {
 	// empty
 }
@@ -243,7 +238,9 @@ void PathBuilder::build(const Tile & start, Direction d)
 	m_currentPos = start;
 	m_dir = d;
 
-	while (advance()) { }
+	while (advance())
+	{
+	}
 
 	std::stringstream ss;
 	int fcount = 0;
@@ -325,53 +322,145 @@ bool PathBuilder::advance()
 
 void writeLine(const std::string & s, InterProgramCommunication & p)
 {
-	for(const auto c : s)
+	for (const auto c : s)
 	{
 		p.write(static_cast<Integer>(c));
 	}
 	p.write(10);
 }
 
-Integer dust(const std::vector<Integer> & code)
+std::optional<CompressedPath> trySplit(std::string s, int lenA, int lenB, int lenC)
 {
-	// TODO: Write algorithm to automatically compute the routine.
-	InterProgramCommunication in, out;
-	std::string path = "A,B,B,A,C,A,C,A,C,B";
-	std::string a = "R,6,R,6,R,8,L,10,L,4";
-	std::string b = "R,6,L,10,R,8";
-	std::string c = "L,4,L,12,R,6,L,10";
+	// Extremly bad code that tries to split a string in three parts of given length
+	// and returns the Compressed path if the compression worked out
 
-	writeLine(path, in);
-	writeLine(a, in);
-	writeLine(b, in);
-	writeLine(c, in);
+	const auto A = s.substr(0, lenA);
+
+	size_t foundAt = s.find(A, 0);
+
+	while (foundAt != std::string::npos)
+	{
+		s.replace(foundAt, lenA, "A");
+		foundAt = s.find(A, foundAt + 1);
+	}
+
+	size_t foundR = s.find("R", 0);
+	size_t foundL = s.find("L", 0);
+
+	if (foundR == std::string::npos && foundL == std::string::npos)
+	{
+		return std::nullopt;
+	}
+	else if (foundR == std::string::npos)
+	{
+		foundAt = foundL;
+	}
+	else if (foundL == std::string::npos)
+	{
+		foundAt = foundR;
+	}
+	else
+	{
+		foundAt = std::min(foundR, foundL);
+	}
+
+	const auto B = s.substr(foundAt, lenB);
+
+	while (foundAt != std::string::npos)
+	{
+		s.replace(foundAt, lenB, "B");
+		foundAt = s.find(B, foundAt + 1);
+	}
+
+	foundR = s.find("R", 0);
+	foundL = s.find("L", 0);
+
+	if (foundR == std::string::npos && foundL == std::string::npos)
+	{
+		return std::nullopt;
+	}
+	else if (foundR == std::string::npos)
+	{
+		foundAt = foundL;
+	}
+	else if (foundL == std::string::npos)
+	{
+		foundAt = foundR;
+	}
+	else
+	{
+		foundAt = std::min(foundR, foundL);
+	}
+
+	const auto C = s.substr(foundAt, lenC);
+
+	while (foundAt != std::string::npos)
+	{
+		s.replace(foundAt, lenC, "C");
+		foundAt = s.find(C, foundAt + 1);
+	}
+
+	for (const auto c : s)
+	{
+		if (c != ',' && c != 'A' && c != 'B' && c != 'C')
+		{
+			return std::nullopt;
+		}
+	}
+
+	return CompressedPath{ A, B, C, s };
+}
+
+CompressedPath getCompressedPath(const std::string & s)
+{
+	for (int lenA = 1; lenA <= 20; ++lenA)
+	{
+		for (int lenB = 1; lenB <= 20; ++lenB)
+		{
+			for (int lenC = 1; lenC <= 20; ++lenC)
+			{
+				const auto res = trySplit(s, lenA, lenB, lenC);
+				if (res)
+				{
+					return *res;
+				}
+			}
+		}
+	}
+
+	throw std::runtime_error{ "Could not find path" };
+}
+
+Integer dust(const std::vector<Integer> & code, const CompressedPath & path)
+{
+	InterProgramCommunication in, out;
+
+	writeLine(path.S, in);
+	writeLine(path.A, in);
+	writeLine(path.B, in);
+	writeLine(path.C, in);
 	in.write(static_cast<Integer>('n'));
 	in.write(10);
 
-	std::thread t{
-		[&]
-		{
-			Intprogram p{ in, out, code };
-			p.write(0, 2);
-			p.run();
-			in.stop();
-			out.stop();
-		}
-	};
+	std::thread t{ [&] {
+		Intprogram p{ in, out, code };
+		p.write(0, 2);
+		p.run();
+		in.stop();
+		out.stop();
+	} };
 
 	Integer dst = 0;
 
-	while(true)
+	while (true)
 	{
 		try
 		{
-			const auto v = out.readNext();
-			//std::cout << v << std::endl;
-			dst = v;
+			dst = out.readNext();
 		}
-		catch(const Input::Stopped &)
+		catch (const Input::Stopped &)
 		{
-			break; 
+			break;
 		}
 	}
 

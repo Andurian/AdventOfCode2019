@@ -4,7 +4,7 @@
 #include "multicall.h"
 #include "secure_container.h"
 
-int count(const std::function<bool(int)>& filter, int start, int end)
+int count(const std::function<bool(int)> & filter, int start, int end)
 {
 	int num = 0;
 	for (int i = start; i <= end; ++i)

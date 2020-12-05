@@ -21,16 +21,20 @@ public:
 		Ball
 	};
 
-	Arcade();
+	Arcade(int frameDelayMs);
 	~Arcade();
 
-	void run(const std::string & filename);
+	void run(const std::string & filename, bool insertQuarter);
 
-	std::string getImg();
-
-	Integer getCount(Tile t);
+	std::string getDisplayString() const;
+	Integer getTileCount(Tile t) const;
+	Integer getScore() const;
 
 private:
+	static void cls();
+
+	void display() const;
+
 	static const std::map<Tile, char> s_charMapping;
 
 	InterProgramCommunication m_input;
@@ -44,4 +48,6 @@ private:
 
 	Integer m_ballPos;
 	Integer m_pedalPos;
+
+	int m_frameDelayMs;
 };

@@ -22,7 +22,7 @@ public:
 	bool isInside(int row, int col) const { return row >= 0 && row < m_height && col >= 0 && col < m_width; }
 	bool isInside(const Tile & t) const { return isInside(t(0), t(1)); }
 
-	std::string draw() const;
+	std::string display() const;
 
 	auto rows() const { return m_height; }
 	auto cols() const { return m_width; }

@@ -21,7 +21,6 @@ std::string generate_image(const PointMap<char> & map, char empty, bool flip_xy)
 		}
 	}
 
-
 	for (const auto & it : map)
 	{
 		const auto & tile = it.first;

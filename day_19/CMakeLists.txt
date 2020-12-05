@@ -19,6 +19,8 @@ SET(RESOURCE_FILES
 )
 
 ADD_LIBRARY( ${PROJECT_NAME}
+  Image.h
+  Image.cpp
   tractor.h
   tractor.cpp
 )
