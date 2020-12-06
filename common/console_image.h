@@ -23,6 +23,8 @@ struct ImageLimits
 	T width() const { return x_max - x_min + 1; }
 	T height() const { return y_max - x_min + 1; }
 
+	bool isInside(T x, T y) const { return x >= x_min && x <= x_max && y >= y_min && y <= y_max; }
+
 	T x_min = std::numeric_limits<T>::max();
 	T x_max = std::numeric_limits<T>::lowest();
 
@@ -52,14 +54,14 @@ ImageLimits<int> makeLimits(const PointMap<T> & m)
 std::string generate_image(const PointMap<char> & map, char empty, bool flip_xy = false);
 
 template<typename T>
-std::string generate_image_with_map(const PointMap<T> & map, const CharMapping<T> & charMapping, char empty)
+std::string generate_image_with_map(const PointMap<T> & map, const CharMapping<T> & charMapping, char empty = ' ')
 {
 	const auto limits = makeLimits(map);
 
 	std::string img;
 	for (int i = 0; i < limits.height(); ++i)
 	{
-		img += std::string(limits.width(), empty) + "\n";;
+		img += std::string(limits.width(), empty) + "\n";
 	}
 
 	for (const auto & it : map)
